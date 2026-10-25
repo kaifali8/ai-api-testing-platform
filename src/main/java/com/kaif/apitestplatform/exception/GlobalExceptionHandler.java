@@ -50,12 +50,17 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "You do not have permission to access this resource"));
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String,String>> handleNotFound(ResourceNotFoundException ex){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error",ex.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String,String>> handleGeneral(Exception ex){
         Map<String,String> error = new HashMap<>();
         error.put("error","Something went wrong: "+ ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
-
 
 }
