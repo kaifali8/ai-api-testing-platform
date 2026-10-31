@@ -6,6 +6,7 @@ import com.kaif.apitestplatform.dto.response.ProjectResponse;
 import com.kaif.apitestplatform.entity.Project;
 import com.kaif.apitestplatform.entity.User;
 import com.kaif.apitestplatform.exception.ResourceNotFoundException;
+import com.kaif.apitestplatform.repository.ApiDefinitionRepository;
 import com.kaif.apitestplatform.repository.ProjectRepository;
 import com.kaif.apitestplatform.service.ProjectService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository projectRepository;
+    private final ApiDefinitionRepository apiDefinitionRepository;
 
     @Override
     public ProjectResponse create(ProjectRequest request, User owner) {
@@ -55,7 +57,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void delete(Long id, User owner) {
-        projectRepository.delete(findOwned(id, owner));
+        Project project=findOwned(id, owner);
+        apiDefinitionRepository.deleteByProjectId(id);//children first deleted
+        projectRepository.delete(project);
     }
 
     private Project findOwned(Long id,User owner){
