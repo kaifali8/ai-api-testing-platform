@@ -35,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,6 +43,9 @@ import java.util.stream.Collectors;
 public class SpecImportServiceImpl implements SpecImportService {
     private final ProjectRepository projectRepository;
     private final ApiDefinitionRepository apiDefinitionRepository;
+
+    private static final Pattern EXTERNAL_REF =
+            Pattern.compile("\\$ref\"?+\\s*:\\s*['\"]?+(?!#)\\S");
 
     @Override
     @Transactional
@@ -114,10 +118,16 @@ public class SpecImportServiceImpl implements SpecImportService {
         if (!(name.endsWith(".json") || name.endsWith(".yaml") || name.endsWith(".yml"))){
             throw new InvalidSpecException("Only .json, .yaml or .yml files are allowed");
         }
-        try{
-            return new String(file.getBytes(), StandardCharsets.UTF_8);
-        }catch (IOException e){
-            throw new InvalidSpecException("Could not read uplaoded file");
+        try {
+            String text = new String(file.getBytes(), StandardCharsets.UTF_8);
+            if (EXTERNAL_REF.matcher(text).find()) {
+                throw new InvalidSpecException(
+                        "External $ref is not allowed. Upload a self-contained spec "
+                                + "(all references must start with #)");
+            }
+            return text;
+        } catch (IOException e) {
+            throw new InvalidSpecException("Could not read uploaded file");
         }
     }
 
