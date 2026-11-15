@@ -19,4 +19,10 @@ public interface TestCaseRepository extends JpaRepository<TestCase,Long> {
     long countBySuiteId(Long suiteId);
 
     Optional<TestCase> findByIdAndSuiteId(Long id, Long suiteId);
+
+    Page<TestCase> findBySuiteIdAndEnabledTrue(Long suiteId, Pageable pageable);
+
+    long countBySuiteIdAndEnabledTrue(Long suiteId);
+
+    long countBySuiteIdAndEnabledTrueAndIncludeAuthTrue(Long suiteId);
 }

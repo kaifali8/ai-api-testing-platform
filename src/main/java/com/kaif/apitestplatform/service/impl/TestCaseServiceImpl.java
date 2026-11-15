@@ -40,7 +40,7 @@ public class TestCaseServiceImpl implements TestCaseService {
             t.setName(request.getName().trim());
         }
         if (request.getDescription()!=null) t.setDescription(request.getDescription());
-        if (request.getRequestData()!=null) t.setDescription(serialize(request.getRequestData()));
+        if (request.getRequestData()!=null) t.setRequestData(serialize(request.getRequestData()));
         if (request.getExpectedStatuses()!=null) t.setExpectedStatuses(request.getExpectedStatuses());
         if (request.getIncludeAuth()!=null) t.setIncludeAuth(request.getIncludeAuth());
         if (request.getEnabled()!=null) t.setEnabled(request.getEnabled());
@@ -75,6 +75,7 @@ public class TestCaseServiceImpl implements TestCaseService {
             if (json.length() > MAX_REQUEST_DATA_CHARS){
                 throw new BadRequestException("Request data is too large (max 50,000 characters");
             }
+            return json;
         }catch (JsonProcessingException e){
             throw new BadRequestException("Request data could not be processed");
         }

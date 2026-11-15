@@ -5,17 +5,18 @@ import com.kaif.apitestplatform.dto.response.PageResponse;
 import com.kaif.apitestplatform.dto.response.ProjectResponse;
 import com.kaif.apitestplatform.entity.Project;
 import com.kaif.apitestplatform.entity.User;
+import com.kaif.apitestplatform.enums.RunStatus;
+import com.kaif.apitestplatform.exception.ConflictException;
 import com.kaif.apitestplatform.exception.ResourceNotFoundException;
-import com.kaif.apitestplatform.repository.ApiDefinitionRepository;
-import com.kaif.apitestplatform.repository.ProjectCredentialRepository;
-import com.kaif.apitestplatform.repository.ProjectRepository;
-import com.kaif.apitestplatform.repository.TestSuiteRepository;
+import com.kaif.apitestplatform.repository.*;
 import com.kaif.apitestplatform.security.UrlGuard;
 import com.kaif.apitestplatform.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +27,8 @@ public class ProjectServiceImpl implements ProjectService {
     private final TestSuiteRepository testSuiteRepository;
     private final UrlGuard urlGuard;
     private final ProjectCredentialRepository projectCredentialRepository;
+    private final TestExecutionRepository executionRepository;
+    private final TestResultRepository resultRepository;
 
     @Override
     public ProjectResponse create(ProjectRequest request, User owner) {
@@ -65,9 +68,15 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void delete(Long id, User owner) {
-        Project project=findOwned(id, owner);
+        Project project = findOwned(id, owner);
+        if (executionRepository.existsByProjectIdAndStatusIn(id,
+                List.of(RunStatus.QUEUED, RunStatus.RUNNING))) {
+            throw new ConflictException("A test run is in progress. Wait for it to finish before deleting the project");
+        }
+        resultRepository.deleteByProjectId(id);     // results first: its sub-select needs the executions
+        executionRepository.deleteByProjectId(id);
         projectCredentialRepository.deleteByProjectId(id);
-        testSuiteRepository.deleteByProjectId(id);//tests first deleted
+        testSuiteRepository.deleteByProjectId(id);
         apiDefinitionRepository.deleteByProjectId(id);
         projectRepository.delete(project);
     }

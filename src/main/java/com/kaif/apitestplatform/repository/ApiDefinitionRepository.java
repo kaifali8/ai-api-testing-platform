@@ -23,4 +23,6 @@ public interface ApiDefinitionRepository extends JpaRepository<ApiDefinition,Lon
 
     @EntityGraph(attributePaths = "parameters")
     List<ApiDefinition> findAllByProjectId(Long projectId);
+
+    Optional<ApiDefinition> findByProjectIdAndPathAndHttpMethod(Long projectId, String path, String httpMethod);
 }
