@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface TestCaseRepository extends JpaRepository<TestCase,Long> {
 
@@ -15,4 +17,6 @@ public interface TestCaseRepository extends JpaRepository<TestCase,Long> {
     Page<TestCase> findBySuiteIdAndCategory(Long suiteId, TestCategory category,Pageable pageable);
 
     long countBySuiteId(Long suiteId);
+
+    Optional<TestCase> findByIdAndSuiteId(Long id, Long suiteId);
 }

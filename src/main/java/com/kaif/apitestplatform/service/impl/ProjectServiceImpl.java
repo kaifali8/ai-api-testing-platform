@@ -7,8 +7,10 @@ import com.kaif.apitestplatform.entity.Project;
 import com.kaif.apitestplatform.entity.User;
 import com.kaif.apitestplatform.exception.ResourceNotFoundException;
 import com.kaif.apitestplatform.repository.ApiDefinitionRepository;
+import com.kaif.apitestplatform.repository.ProjectCredentialRepository;
 import com.kaif.apitestplatform.repository.ProjectRepository;
 import com.kaif.apitestplatform.repository.TestSuiteRepository;
+import com.kaif.apitestplatform.security.UrlGuard;
 import com.kaif.apitestplatform.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -22,9 +24,12 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository projectRepository;
     private final ApiDefinitionRepository apiDefinitionRepository;
     private final TestSuiteRepository testSuiteRepository;
+    private final UrlGuard urlGuard;
+    private final ProjectCredentialRepository projectCredentialRepository;
 
     @Override
     public ProjectResponse create(ProjectRequest request, User owner) {
+        urlGuard.validate(request.getBaseUrl());
         Project project=Project.builder()
                 .name(request.getName())
                 .description(request.getDescription())
@@ -51,6 +56,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectResponse update(Long id, ProjectRequest request, User owner) {
         Project project=findOwned(id, owner);
+        urlGuard.validate(request.getBaseUrl());
         project.setName(request.getName());
         project.setDescription(request.getDescription());
         project.setBaseUrl(request.getBaseUrl());
@@ -60,6 +66,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void delete(Long id, User owner) {
         Project project=findOwned(id, owner);
+        projectCredentialRepository.deleteByProjectId(id);
         testSuiteRepository.deleteByProjectId(id);//tests first deleted
         apiDefinitionRepository.deleteByProjectId(id);
         projectRepository.delete(project);

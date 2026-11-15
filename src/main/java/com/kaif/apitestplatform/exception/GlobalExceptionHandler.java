@@ -89,4 +89,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error","Invalid value for parameter '" + ex.getName() + "'"));
     }
+
+    @ExceptionHandler(UnsafeUrlException.class)
+    public ResponseEntity<Map<String,String>> handleUnsafeUrl(UnsafeUrlException ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error","URL rejected: "+ ex.getMessage()));
+    }
 }
