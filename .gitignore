@@ -31,3 +31,16 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+ai-service/.env
+ai-service/.venv/
+__pycache__/
+.env
+.pytest_cache/
+
+# IDE and build output
+.idea/
+.run/
+target/
+*.iml

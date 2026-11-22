@@ -11,6 +11,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Optional;
+
 @Repository
 public interface TestResultRepository extends JpaRepository<TestResult, Long> {
 
@@ -24,4 +27,11 @@ public interface TestResultRepository extends JpaRepository<TestResult, Long> {
     @Query("delete from TestResult r where r.executionId in "
             + "(select e.id from TestExecution e where e.projectId = :projectId)")
     void deleteByProjectId(@Param("projectId") Long projectId);
+
+    Optional<TestResult> findByIdAndExecutionId(Long id, Long executionId);
+
+    @Query("select r from TestResult r where r.executionId = :executionId and r.status = :status "
+            + "and not exists (select 1 from AiAnalysis a where a.resultId = r.id) order by r.id")
+    List<TestResult> findUnanalyzed(@Param("executionId") Long executionId,
+                                    @Param("status") ResultStatus status, Pageable pageable);
 }

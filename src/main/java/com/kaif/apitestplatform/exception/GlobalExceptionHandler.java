@@ -101,4 +101,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("error", ex.getMessage()));
     }
+
+    @ExceptionHandler(AiServiceException.class)
+    public ResponseEntity<Map<String,String>> handleAi(AiServiceException ex){
+        return ResponseEntity.status(ex.getStatus()).body(Map.of("error",ex.getMessage()));
+    }
 }
