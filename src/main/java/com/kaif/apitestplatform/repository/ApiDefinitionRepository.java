@@ -25,4 +25,6 @@ public interface ApiDefinitionRepository extends JpaRepository<ApiDefinition,Lon
     List<ApiDefinition> findAllByProjectId(Long projectId);
 
     Optional<ApiDefinition> findByProjectIdAndPathAndHttpMethod(Long projectId, String path, String httpMethod);
+
+    long countByProjectId(Long projectId);
 }

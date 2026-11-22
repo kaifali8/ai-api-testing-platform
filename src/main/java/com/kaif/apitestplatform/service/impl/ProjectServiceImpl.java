@@ -29,6 +29,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectCredentialRepository projectCredentialRepository;
     private final TestExecutionRepository executionRepository;
     private final TestResultRepository resultRepository;
+    private final LlmGenerationJobRepository llmGenerationJobRepository;
     private final AiAnalysisRepository aiAnalysisRepository;
 
     @Override
@@ -70,13 +71,16 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void delete(Long id, User owner) {
         Project project = findOwned(id, owner);
-        if (executionRepository.existsByProjectIdAndStatusIn(id,
-                List.of(RunStatus.QUEUED, RunStatus.RUNNING))) {
-            throw new ConflictException("A test run is in progress. Wait for it to finish before deleting the project");
+        List<RunStatus> active = List.of(RunStatus.QUEUED, RunStatus.RUNNING);
+        if (executionRepository.existsByProjectIdAndStatusIn(id, active)
+                || llmGenerationJobRepository.existsByProjectIdAndStatusIn(id, active)) {
+            throw new ConflictException(
+                    "A test run or AI generation is in progress. Wait for it to finish before deleting the project");
         }
         aiAnalysisRepository.deleteByProjectId(id);
-        resultRepository.deleteByProjectId(id);     // results first: its sub-select needs the executions
+        resultRepository.deleteByProjectId(id);
         executionRepository.deleteByProjectId(id);
+        llmGenerationJobRepository.deleteByProjectId(id);
         projectCredentialRepository.deleteByProjectId(id);
         testSuiteRepository.deleteByProjectId(id);
         apiDefinitionRepository.deleteByProjectId(id);

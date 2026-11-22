@@ -57,7 +57,7 @@ public class RuleBasedTestGenerator {
         boolean auth = api.isRequiresAuth();
 
         add(out,"Valid request succeeds", "All parameters and body fields hold valid values",
-                TestCategory.POSITVE,base,ok,auth);
+                TestCategory.POSITIVE,base,ok,auth);
 
         for (Target t:targets){
             String bad = t.loc() == Loc.PATH ? PATH_ERRORS : VALIDATION_ERRORS;

@@ -27,7 +27,7 @@ public class AiServiceClient {
 
     public AiServiceClient(@Value("${app.ai.base-url}") String baseUrl,
                            @Value("${app.ai.internal-key}") String internalKey,
-                           @Value("${app.ai.timeout-seconds:45}") int timeoutSeconds) {
+                           @Value("${app.ai.timeout-seconds:75}") int timeoutSeconds) {
         HttpClient jdk = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(3)).build();
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(jdk);
         factory.setReadTimeout(Duration.ofSeconds(timeoutSeconds));
@@ -36,17 +36,24 @@ public class AiServiceClient {
     }
 
     public AiPayloads.Parsed analyzeFailure(Map<String, Object> request) {
+        return AiPayloads.parse(post("/analyze-failure", request));
+    }
+
+    /** Returns the raw JSON; LlmPayloads.parse() checks it. */
+    public String generateTests(Map<String, Object> request) {
+        return post("/generate-tests", request);
+    }
+
+    private String post(String uri, Map<String, Object> request) {
         String json;
         try {
             json = mapper.writeValueAsString(request);
         } catch (JsonProcessingException e) {
             throw new AiServiceException("Could not prepare the AI request", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        String response;
         try {
-            response = client.post()
-                    .uri("/analyze-failure")
+            return client.post()
+                    .uri(uri)
                     .header("X-Internal-Key", internalKey)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(json)
@@ -57,12 +64,11 @@ public class AiServiceClient {
             if (code == 429) {
                 throw new AiServiceException("AI rate limit reached. Try again shortly", HttpStatus.TOO_MANY_REQUESTS);
             }
-            log.warn("AI service answered HTTP {}", code);   // 401 here means the shared keys differ
-            throw new AiServiceException("AI service could not analyze this result", HttpStatus.BAD_GATEWAY);
+            log.warn("AI service answered HTTP {} for {}", code, uri);   // 401 means the shared keys differ
+            throw new AiServiceException("AI service could not process this request", HttpStatus.BAD_GATEWAY);
         } catch (RestClientException e) {
             log.warn("AI service not reachable: {}", e.getClass().getSimpleName());
             throw new AiServiceException("AI service is not reachable", HttpStatus.SERVICE_UNAVAILABLE);
         }
-        return AiPayloads.parse(response);
     }
 }

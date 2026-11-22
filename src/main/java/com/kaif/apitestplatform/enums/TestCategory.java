@@ -1,5 +1,5 @@
 package com.kaif.apitestplatform.enums;
 
 public enum TestCategory {
-    POSITVE, NEGATIVE, BOUNDARY, VALIDATION, AUTHENTICATION
+    POSITIVE, NEGATIVE, BOUNDARY, VALIDATION, AUTHENTICATION, BUSINESS_LOGIC
 }
