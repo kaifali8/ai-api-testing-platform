@@ -25,7 +25,7 @@ log = logging.getLogger("ai-service")
 # No /docs or /openapi.json: this service is internal
 app = FastAPI(title="AI Service", docs_url=None, redoc_url=None, openapi_url=None)
 
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "gemini-3.8-flash"
 
 SYSTEM_PROMPT = """You are a senior API test engineer analysing ONE failed automated API test.
 
